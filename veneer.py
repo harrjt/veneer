@@ -10,9 +10,11 @@ class Art:
         self.medium = medium
         self.owner = owner
 
-    def __repr__(self):
-        art_string = f'{self.artist}. "{self.title}". {self.year}, {self.medium}.\n'
-        owner_string = f'Owner: {self.owner.name}, {self.owner.location}.\n'
+    def __str__(self):
+        art_string = '{}. "{}". {}, {}.\n'.format(
+            self.artist, self.title, self.year, self.medium)
+        owner_string = 'Owner: {}, {}.\n'.format(
+            self.owner.name, self.owner.location)
         return art_string + owner_string
 
 
@@ -38,8 +40,9 @@ class Client:
         self.location = location if is_museum else "Private Collection"
         self.wallet = wallet
 
-    def __repr__(self):
-        return f"{self.name}, {self.location}, ${self.wallet:,}."
+    def __str__(self):
+        return "{}, {}, ${:,}.".format(
+            self.name, self.location, self.wallet)
 
     def sell_artwork(self, artwork, price):
         if artwork.owner == self:
@@ -59,6 +62,18 @@ class Client:
                 veneer.remove_listing(art_listing)
                 self.wallet -= price
 
+    def create_wishlist(self):
+        self.wishlist = []
+        for item in self.bucketlist:
+            for listing in veneer.listings:
+                if item.title == listing.art.title:
+                    self.wishlist.append(listing.art)
+
+
+    def show_wishlist(self):
+        for item in self.wishlist:
+            print(item)
+
 
 class Listing:
     def __init__(self, art, price, seller):
@@ -66,42 +81,64 @@ class Listing:
         self.price = price
         self.seller = seller
 
-    def __repr__(self):
-        return f"{self.art} ${self.price:,} (USD).\n"
+    def __str__(self):
+        return "{} ${:,} (USD).\n".format(
+            self.art, self.price)
+
+
+def print_status(collectors, pieces):
+    print("Collectors:")
+    for collector in collectors:
+        print(collector)
+    print()
+
+    print("Art pieces:")
+    for piece in pieces:
+        print(piece)
+
 
 edytta = Client("Edytta Halpirt", None, False, 15000000)
-moma = Client("The MOMA", "New York", True, 20000000)
-print("Collectors:")
-print(edytta)
-print(moma)
-print()
+moma = Client("The MOMA", "New York", True, 100000000)
+james = Client("James Bond", None, False, 18000000)
+thurston = Client("Thurston Howell III", None, False, 10000000)
+npm = Client("The National Pushkin Museum", "Moscow", True, 30000000)
+clients = (moma, npm, edytta, thurston, james)
 
 girl_with_a_mandolin = Art("Picasso, Pablo", "Girl with a Mandolin (Fanny Tellier)", 1910, "oil on canvas", edytta)
 vétheuil_in_the_fog = Art("Monet, Claude", "Vétheuil in the Fog", 1879, "oil on canvas", moma)
-print("Art pieces:")
-print(girl_with_a_mandolin)
-print(vétheuil_in_the_fog)
+the_starry_night = Art("van Gogh, Vincent", "The Starry Night", 1889, "oil on canvas", moma)
+the_red_vineyard = Art("van Gogh, Vincent", "The Red Vineyard", 1888, "oil on canvas", npm)
+art_pieces = (girl_with_a_mandolin, vétheuil_in_the_fog,
+              the_starry_night, the_red_vineyard)
+
+print_status(clients, art_pieces)
 
 veneer = Marketplace()
-print("Listings: (should be empty)")
+print("Listings: (empty -- nothing for sale)")
 veneer.show_listings()
 print()
 
 edytta.sell_artwork(girl_with_a_mandolin, 6000000)
-print("Listings: (should be \"Girl with a Mandolin\")")
+print("Listings: (\"Girl with a Mandolin\" for sale)")
 veneer.show_listings()
 print()
 
 moma.buy_artwork(girl_with_a_mandolin, 6000000)
-print("Listings: (should be empty)")
+print("Listings: (empty -- \"Girl with a Mandolin\" sold; nothing for sale)")
 veneer.show_listings()
 print()
 
-print("Collectors: ")
-print(edytta)
-print(moma)
-print()
+print_status(clients, art_pieces)
 
-print("Art pieces:")
-print(girl_with_a_mandolin)
-print(vétheuil_in_the_fog)
+moma.sell_artwork(the_starry_night, 8000000)
+print("Listings:")
+veneer.show_listings()
+
+edytta.bucketlist = (the_red_vineyard, the_starry_night)
+print("Edytta's bucket list:")
+for painting in edytta.bucketlist:
+    print(painting)
+
+print("Edytta's wishlist:")
+edytta.create_wishlist()
+edytta.show_wishlist()
