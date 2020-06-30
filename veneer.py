@@ -1,8 +1,9 @@
 """ market_list.py -- Codecademy project in Computer Science Course """
-# pylint: disable=C0114
 # pylint: disable=C0115
 # pylint: disable=C0116
 # pylint: disable=C0103
+from datetime import date, timedelta
+
 class Art:
     def __init__(self, artist, title, year, medium, owner):
         self.artist = artist
@@ -28,6 +29,11 @@ class Marketplace:
 
     def remove_listing(self, listing_to_remove):
         self.listings.remove(listing_to_remove)
+
+    def update_listings(self):
+        for listing in self.listings:
+            if listing.exp_date < date.today():
+                self.listings.remove(listing)
 
     def show_listings(self):
         for listing in self.listings:
@@ -61,7 +67,7 @@ class Client:
         if artwork.owner != self:
             art_listing = None
             for listing in market_list.listings:
-                if listing.art == artwork:
+                if listing.art == artwork and date.today() < listing.exp_date:
                     art_listing = listing
                     break
             if art_listing is not None:
@@ -83,15 +89,20 @@ class Client:
 
 
 class Listing:
-    def __init__(self, art, price, seller):
+    def __init__(self, art, price, seller, days=None):
         self.art = art
         self.price = price
         self.seller = seller
+        self.post_date = date.today() - timedelta(days=15)
+
+        if days:
+            self.exp_date = self.post_date + timedelta(days)
+        else:
+            self.exp_date = self.post_date + timedelta(days=30)
 
     def __str__(self):
-        return "{} ${:,} (USD).\n".format(
-            self.art, self.price)
-
+        return "{}${:,} (USD).\tPost date: {}\tExpiration date: {}\n".format(
+            self.art, self.price, self.post_date, self.exp_date)
 
 def print_status(collectors, pieces):
     print("Collectors:")
